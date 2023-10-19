@@ -1,65 +1,111 @@
-import org.apache.sanselan.Sanselan;
-import org.apache.sanselan.common.IImageMetadata;
-import org.apache.sanselan.formats.png.PngImageParser;
+/*
+ * Author: Chris Ron
+ * Created: 9-14-23
+ * Description: reads config.txt and generates given number of images, layer by layer
+ */
 
-import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class RandomImageGenerator {
 
-    public static void main(String[] args) {
-        String directoryPath = "path/to/png/files/directory";
-        List<File> pngFiles = loadPngFiles(directoryPath);
+    public static void main(String[] args) throws Exception {
 
-        if (pngFiles.size() < 2) {
-            System.out.println("Not enough .png files in the directory.");
-            return;
+        File completedDir = new File("Completed");
+
+        for (File file : Objects.requireNonNull(completedDir.listFiles())) {
+            file.delete();
         }
 
-        Random random = new Random();
-        BufferedImage generatedImage = new BufferedImage(800, 600, BufferedImage.TYPE_INT_ARGB);
+        int numImages;
+        int numLayers;
 
-        Graphics2D graphics = generatedImage.createGraphics();
-        for (int i = 0; i < 2; i++) {
-            int randomIndex = random.nextInt(pngFiles.size());
-            File pngFile = pngFiles.get(randomIndex);
+        File config = new File("config.txt");
+        Scanner sc = new Scanner(config);
 
-            try {
-                BufferedImage overlayImage = Sanselan.getBufferedImage(pngFile);
-                graphics.drawImage(overlayImage, 0, 0, null);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+        String genNumString = sc.nextLine();
+        genNumString = genNumString.substring(30);
+        numImages = Integer.parseInt(genNumString);
 
-        graphics.dispose();
 
-        File outputFile = new File("output.png");
-        try {
-            Sanselan.writeImage(generatedImage, outputFile, Sanselan.PNG, null);
-            System.out.println("Generated image saved.");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        String numLayersString = sc.nextLine();
+        numLayersString = numLayersString.substring(18);
+        numLayers = Integer.parseInt(numLayersString);
+        
+        ArrayList<ArrayList<Branch>> layers = layerTreeGen(numLayers, sc);
+
+        printListList(layers);
+
+
+        sc.close();
     }
 
-    private static List<File> loadPngFiles(String directoryPath) {
-        List<File> pngFiles = new ArrayList<>();
-        File directory = new File(directoryPath);
+    public static ArrayList<ArrayList<Branch>> layerTreeGen(int size, Scanner sc) 
+    {
+        ArrayList<ArrayList<Branch>> layers = new ArrayList<ArrayList<Branch>>();
 
-        if (directory.isDirectory()) {
-            for (File file : directory.listFiles()) {
-                if (file.isFile() && file.getName().endsWith(".png")) {
-                    pngFiles.add(file);
+        for(int i=0; i<size; i++)
+        {
+            ArrayList<Branch> currentLayer = new ArrayList<Branch>();
+
+            String layerLine = sc.nextLine();
+            int lineSize = layerLine.length();
+
+            int layerStartIndex = 0;
+
+            for(int j=0; j<lineSize; j++)
+            {
+                char currentChar = layerLine.charAt(j);
+
+                if(currentChar==':'){
+                    layerStartIndex = j+2;
+                    break;
                 }
             }
+
+            
+
+            String[] layerData = layerLine.substring(layerStartIndex).split(" ");
+
+            int dataSize = layerData.length;
+
+            Branch currentBranch = new Branch();
+
+            String currentName = "init";
+            double currentChance = 0.0;
+
+            for(int j=0; j<dataSize; j++)
+            {
+                if(j%2==0)
+                {
+                    currentName = layerData[j];
+                }
+                else
+                {
+                    currentChance = Double.parseDouble(layerData[j]);
+                    currentBranch = new Branch(currentName, currentChance);
+                    currentLayer.add(currentBranch);
+                }
+            }
+
+            layers.add(currentLayer);
         }
 
-        return pngFiles;
+        return layers;
+    }
+
+    public static void printListList(ArrayList<ArrayList<Branch>> layers)
+    {
+        int count = 1;
+        for(ArrayList<Branch> layer : layers)
+        {
+            System.out.println("Layer " + count + ": ");
+            for(Branch branch : layer)
+            {
+                System.out.println(branch);
+            }
+            System.out.println();
+            count++;
+        }
     }
 }

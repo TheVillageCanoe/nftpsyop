@@ -1,0 +1,12 @@
+Number of Images to Generate: 10000
+Number of Layers: 10
+layer 1: background 1.0
+layer 2: skin 1.0
+layer 3: legs 1.0
+layer 4: torsoUnderAnime 0.2 fullBodyAnimeUnder 0.203 torsoUnder 0.394 fullBody 0.203
+layer 5: armsAnime 0.30 arms 0.7
+layer 6: torsoOverAnime 0.05 torsoOver 0.95
+layer 7: handsAnime 0.26 hands 0.74
+layer 8: faceAnime 0.336 face 0.664
+layer 9: hairAnime 0.3 hair 0.6 *helmet 0.1
+layer 10: *faceOver 0.025 END 0.975
